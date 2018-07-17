@@ -167,38 +167,16 @@ class JSO extends EventEmitter {
   // Experimental support for authorization code to be added
   processAuthorizationCodeResponse(object) {
     console.log(this)
-    this.emit('authorizationCode', object)
+    var state = this;
 
-
-		let state
-		if (object.state) {
-			state = this.store.getState(object.state)
-      if (state === null) {
-        throw new Error("Could not find retrieve state object.")
-      }
-		} else {
-			throw new Error("Could not find state paramter from callback.")
-		}
-    console.log("state", state)
-
-    if (!this.config.has('token')) {
-      utils.log("Received an authorization code. Will not process it as the config option [token] endpoint is not set. If you would like to process the code yourself, please subscribe to the [authorizationCode] event")
-      return
-    }
-    if (!this.config.has('client_secret')) {
-      throw new Error("Configuration missing [client_secret]")
-    }
     let headers = new Headers()
-    headers.append('Authorization', 'Basic ' + btoa(this.config.getValue('client_id') + ":" + this.config.getValue('client_secret')))
     headers.append('Content-Type', 'application/x-www-form-urlencoded;charset=UTF-8')
 
+    var client_id = this.config.getValue('client_id');
     let tokenRequest = {
       'grant_type': 'authorization_code',
-      'code': object.code
-    }
-
-    if (state.hasOwnProperty('redirect_uri')) {
-      tokenRequest.redirect_uri = state.redirect_uri
+      'code': object.code,
+      'client_id': client_id,
     }
 
     let opts = {
